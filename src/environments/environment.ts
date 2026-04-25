@@ -1,11 +1,11 @@
 export const environment = {
   production: true,
   firebase: {
-    apiKey: process.env['FIREBASE_API_KEY']!,
-    authDomain: process.env['FIREBASE_AUTH_DOMAIN']!,
-    projectId: process.env['FIREBASE_PROJECT_ID']!,
-    storageBucket: process.env['FIREBASE_STORAGE_BUCKET']!,
-    messagingSenderId: process.env['FIREBASE_MESSAGING_SENDER_ID']!,
-    appId: process.env['FIREBASE_APP_ID']!,
+    apiKey: 'AIzaSyCe1zklcp9VzucrCAp1tBdgQPIc3blAqWE',
+    authDomain: 'twilight-agenda.firebaseapp.com',
+    projectId: 'twilight-agenda',
+    storageBucket: 'twilight-agenda.firebasestorage.app',
+    messagingSenderId: '76095685581',
+    appId: '1:76095685581:web:10e9af680878bf99027a84',
   },
 };
