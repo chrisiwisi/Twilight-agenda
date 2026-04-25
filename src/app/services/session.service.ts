@@ -115,12 +115,23 @@ export class SessionService {
     getOrCreateUsername(): string {
         let name = localStorage.getItem('twilight_username');
         if (!name) {
-            const title = USER_TITLES[Math.floor(Math.random() * USER_TITLES.length)];
-            const noun = USER_NOUN[Math.floor(Math.random() * USER_NOUN.length)];
-            name = `${title}${noun}`;
+            name = this.generateUsername();
             localStorage.setItem('twilight_username', name);
         }
         return name;
+    }
+
+    /** Generate and persist a brand-new random username, replacing any existing one. */
+    rerollUsername(): string {
+        const name = this.generateUsername();
+        localStorage.setItem('twilight_username', name);
+        return name;
+    }
+
+    private generateUsername(): string {
+        const title = USER_TITLES[Math.floor(Math.random() * USER_TITLES.length)];
+        const noun = USER_NOUN[Math.floor(Math.random() * USER_NOUN.length)];
+        return `${title}${noun}`;
     }
 
     getOrCreatePlayerId(): string {
@@ -134,7 +145,7 @@ export class SessionService {
 
     private async generateLobbyId(): Promise<string> {
         const id = generate({components: 2, suffix: suffixGenerators.number});
-        const snap = await getDoc(doc(this.firestore, 'sessions', id));
+        await getDoc(doc(this.firestore, 'sessions', id));
         return id;
     }
 

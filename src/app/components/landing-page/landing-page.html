@@ -1,30 +1,41 @@
 <div class="landing">
   <h1>Twilight Agenda</h1>
-  <p class="username">Playing as <strong>{{ username }}</strong></p>
+  <p class="username">
+    Playing as <strong>{{ username() }}</strong>
+    <button nz-button nzType="text" nzShape="circle" (click)="rerollUsername()" title="Reroll username">
+      <nz-icon nzType="reload" nzTheme="outline" />
+    </button>
+  </p>
 
   <div class="actions">
-    <button (click)="createLobby()" [disabled]="loading()">
-      {{ loading() ? 'Creating…' : 'Create Lobby' }}
+    <button nz-button nzType="primary" (click)="createLobby()" [nzLoading]="loading()">
+      Create Lobby
     </button>
-    <button (click)="toggleJoin()" [disabled]="loading()">Join Lobby</button>
+    <button nz-button (click)="toggleJoin()" [disabled]="loading()">Join Lobby</button>
   </div>
 
   @if (showJoinInput()) {
     <div class="join-form">
-      <input
-        type="text"
-        placeholder="Enter lobby code"
-        [(ngModel)]="lobbyCode"
-        (keydown.enter)="joinLobby()"
-        autofocus
-      />
-      <button (click)="joinLobby()" [disabled]="loading() || !lobbyCode.trim()">
-        {{ loading() ? 'Joining…' : 'Join' }}
-      </button>
+      <nz-input-group nzSearch [nzAddOnAfter]="joinBtn">
+        <input
+          nz-input
+          type="text"
+          placeholder="Enter lobby code"
+          [(ngModel)]="lobbyCode"
+          (keydown.enter)="joinLobby()"
+          autofocus
+        />
+      </nz-input-group>
+      <ng-template #joinBtn>
+        <button nz-button nzType="primary" nzSearch (click)="joinLobby()"
+                [nzLoading]="loading()" [disabled]="loading() || !lobbyCode.trim()">
+          Join
+        </button>
+      </ng-template>
     </div>
   }
 
   @if (errorMessage()) {
-    <p class="error">{{ errorMessage() }}</p>
+    <nz-alert nzType="error" [nzMessage]="errorMessage()" nzShowIcon />
   }
 </div>

@@ -12,9 +12,7 @@ body {
   color: #333;
 }
 
-.lobby,
-.host,
-.player {
+.lobby {
   max-width: 800px;
   margin: 2rem auto;
   padding: 2rem;
@@ -32,10 +30,6 @@ h2 {
   margin-top: 1.5rem;
   margin-bottom: 1rem;
   font-size: 1.25rem;
-}
-
-section {
-  margin: 1.5rem 0;
 }
 
 input {
@@ -88,24 +82,6 @@ li {
 
 li:last-child {
   border-bottom: none;
-}
-
-hr {
-  margin: 2rem 0;
-  border: none;
-  border-top: 1px solid #eee;
-}
-
-.error {
-  color: #d32f2f;
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: #ffebee;
-  border-radius: 4px;
-}
-
-.actions {
-  margin: 1rem 0;
 }
 
 p {
