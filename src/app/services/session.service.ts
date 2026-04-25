@@ -25,8 +25,69 @@ export interface Session {
 const ADJECTIVES = ['Swift', 'Brave', 'Silent', 'Clever', 'Bold', 'Calm', 'Eager', 'Fierce', 'Gentle', 'Happy'];
 const ANIMALS = ['Fox', 'Bear', 'Wolf', 'Hawk', 'Lion', 'Owl', 'Deer', 'Tiger', 'Raven', 'Lynx'];
 
-const LOBBY_COLORS = ['Red', 'Blue', 'Gold', 'Jade', 'Teal', 'Rose', 'Onyx', 'Sage', 'Coral', 'Amber'];
-const LOBBY_NOUNS  = ['Tower', 'Forge', 'Haven', 'Vault', 'Spire', 'Cove', 'Grove', 'Keep', 'Gate', 'Hall'];
+const LOBBY_TITLES = [
+  'The ',
+  'The Argent ',
+  'The Barony of ',
+  'The Clan of ',
+  'The Council ',
+  'The Crimson ',
+  'The Deepwrought ',
+  'The Emirates of ',
+  'The Embers of ',
+  'The Federation of ',
+  'The Ghosts of ',
+  'The L1Z1X ',
+  'The Mahact ',
+  'The Mentak ',
+  'The Naalu ',
+  'The Naaz-Rokha ',
+  'The Nekro ',
+  'The Ral Nel ',
+  'The Titans of ',
+  'The Universities of ',
+  'The Vuil\'Raith ',
+  'The Xxcha ',
+  'The Yin ',
+  'The Yssaril ',
+  'Last ',
+  'Sardakk ',
+];
+
+const LOBBY_NOUNS = [
+  'Alliance',
+  'Arborec',
+  'Bastion',
+  'Brotherhood',
+  'Cabal',
+  'Coalition',
+  'Collective',
+  'Consortium',
+  'Creuss',
+  'Empyrean',
+  'Firmament',
+  'Flight',
+  'Gene Sorcerers',
+  'Hacan',
+  'Jol-Nar',
+  'Keleres',
+  'Kingdom',
+  'Letnev',
+  'Mindnet',
+  'Muaat',
+  'N\'orr',
+  'Nomad',
+  'Obsidian',
+  'Rebellion',
+  'Saar',
+  'Scholarate',
+  'Sol',
+  'Tribes',
+  'Ul',
+  'Virus',
+  'Winnu',
+  'Xxcha',
+];
 
 @Injectable({ providedIn: 'root' })
 export class SessionService {
@@ -58,7 +119,7 @@ export class SessionService {
   /** Generate a readable lobby ID like "GoldHaven42". Retries on collision. */
   private async generateLobbyId(): Promise<string> {
     for (let attempt = 0; attempt < 10; attempt++) {
-      const color = LOBBY_COLORS[Math.floor(Math.random() * LOBBY_COLORS.length)];
+      const color = LOBBY_TITLES[Math.floor(Math.random() * LOBBY_TITLES.length)];
       const noun  = LOBBY_NOUNS[Math.floor(Math.random() * LOBBY_NOUNS.length)];
       const num   = Math.floor(Math.random() * 100);
       const id    = `${color}${noun}${num}`;
@@ -66,7 +127,7 @@ export class SessionService {
       if (!snap.exists()) return id;
     }
     // Fallback: append extra entropy
-    return `${LOBBY_COLORS[0]}${LOBBY_NOUNS[0]}${Date.now()}`;
+    return `${LOBBY_TITLES[0]}${LOBBY_NOUNS[0]}${Date.now()}`;
   }
 
   /** Create a new lobby session, add self as first player, return session ID. */
