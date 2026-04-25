@@ -1,12 +1,17 @@
 import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzListModule } from 'ng-zorro-antd/list';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 import { SessionService } from '../../services/session.service';
 
 @Component({
   selector: 'app-lobby',
   standalone: true,
-  imports: [],
+  imports: [NzButtonModule, NzIconModule, NzListModule, NzTagModule],
   templateUrl: './lobby.component.html',
+  styleUrl: './lobby.component.scss',
 })
 export class LobbyComponent implements OnInit {
   private route = inject(ActivatedRoute);
