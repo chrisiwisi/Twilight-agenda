@@ -1,0 +1,38 @@
+{
+  "name": "twilight-agenda",
+  "version": "1.0.0",
+  "description": "Twilight Imperium + Hidden Agenda. What a great pairing but add the council of Kleleres with Emelpar and Booster Stims and you gotta pass a lot of voting sheets around. This web-app aims to modernize that process.",
+  "main": "index.js",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve --open",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@angular/animations": "^21.2.10",
+    "@angular/common": "^21.2.10",
+    "@angular/compiler": "^21.2.10",
+    "@angular/core": "^21.2.10",
+    "@angular/fire": "^20.0.1",
+    "@angular/forms": "^21.2.10",
+    "@angular/platform-browser": "^21.2.10",
+    "@angular/platform-browser-dynamic": "^21.2.10",
+    "@angular/router": "^21.2.10",
+    "firebase": "^11.10.0",
+    "rxjs": "^7.8.2",
+    "tslib": "^2.8.1",
+    "zone.js": "^0.16.1"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^21.2.8",
+    "@angular/cli": "^21.2.8",
+    "@angular/compiler-cli": "^21.2.10",
+    "sass": "^1.99.0",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Angular build artifacts
+dist/
+.angular/
+out-tsc/
+
+# Environment files with real secrets (not included)
+# Note: src/environments/environment.ts and environment.development.ts are in git as they contain placeholders
+.env
+.env.local
+.env.*.local
+
+# IDE and editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS generated files
+Thumbs.db
+.AppleDouble
+.AppleDB
+
+# Angular cache directory
+.angular/cache
