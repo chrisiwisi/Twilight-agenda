@@ -33,6 +33,7 @@
     "@angular/build": "^21.2.8",
     "@angular/cli": "^21.2.8",
     "@angular/compiler-cli": "^21.2.10",
+    "@types/node": "^25.6.0",
     "sass": "^1.99.0",
     "typescript": "~5.9.3"
   }
