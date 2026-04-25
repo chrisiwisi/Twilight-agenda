@@ -1,0 +1,17 @@
+runConfig:
+  minInstances: 0
+
+env:
+  - variable: FIREBASE_API_KEY
+    secret: FIREBASE_API_KEY
+  - variable: FIREBASE_AUTH_DOMAIN
+    value: twilight-agenda.firebaseapp.com
+  - variable: FIREBASE_PROJECT_ID
+    value: twilight-agenda
+  - variable: FIREBASE_STORAGE_BUCKET
+    value: twilight-agenda.firebasestorage.app
+  - variable: FIREBASE_MESSAGING_SENDER_ID
+    value: "76095685581"
+  - variable: FIREBASE_APP_ID
+    secret: FIREBASE_APP_ID
+
