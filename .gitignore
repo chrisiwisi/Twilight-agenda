@@ -14,6 +14,7 @@ out-tsc/
 .env
 .env.local
 .env.*.local
+src/environments/environment.local.ts
 
 # IDE and editor directories
 .idea/

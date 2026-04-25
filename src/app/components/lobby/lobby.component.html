@@ -1,0 +1,20 @@
+<!-- list of players in the lobby -->
+<div class="lobby">
+  <header class="lobby-header">
+    <button class="leave-btn" (click)="leaveLobby()">← Leave</button>
+    <h2>Lobby</h2>
+    <button class="copy-btn" (click)="copyCode()">{{ copyLabel() }}</button>
+  </header>
+
+  <p class="lobby-code">Code: <strong>{{ sessionId }}</strong></p>
+
+  <ul class="player-list">
+    @for (player of players(); track player.id) {
+      <li>{{ player.info.name }}</li>
+    }
+  </ul>
+
+  <p class="waiting">Waiting for players… ({{ players().length }} joined)</p>
+
+  <button class="start-btn" (click)="startVote()">Start Vote</button>
+</div>

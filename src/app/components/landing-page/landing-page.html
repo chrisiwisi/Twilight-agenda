@@ -1,0 +1,30 @@
+<div class="landing">
+  <h1>Twilight Agenda</h1>
+  <p class="username">Playing as <strong>{{ username }}</strong></p>
+
+  <div class="actions">
+    <button (click)="createLobby()" [disabled]="loading()">
+      {{ loading() ? 'Creating…' : 'Create Lobby' }}
+    </button>
+    <button (click)="toggleJoin()" [disabled]="loading()">Join Lobby</button>
+  </div>
+
+  @if (showJoinInput()) {
+    <div class="join-form">
+      <input
+        type="text"
+        placeholder="Enter lobby code"
+        [(ngModel)]="lobbyCode"
+        (keydown.enter)="joinLobby()"
+        autofocus
+      />
+      <button (click)="joinLobby()" [disabled]="loading() || !lobbyCode.trim()">
+        {{ loading() ? 'Joining…' : 'Join' }}
+      </button>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+</div>
