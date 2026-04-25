@@ -10,7 +10,27 @@ import {
     deleteField,
 } from '@angular/fire/firestore';
 import {Observable, of, switchMap} from 'rxjs';
-import {humanId} from 'human-id';
+
+const LOBBY_ADJECTIVES = [
+    'amber', 'azure', 'brave', 'calm', 'dark', 'deep', 'elder', 'ember',
+    'feral', 'frost', 'grand', 'grim', 'hollow', 'iron', 'jade', 'keen',
+    'lone', 'misty', 'noble', 'obsidian', 'pale', 'quiet', 'rapid', 'silent',
+    'stark', 'swift', 'thorn', 'twilight', 'vast', 'wild',
+];
+
+const LOBBY_NOUNS = [
+    'arc', 'bastion', 'comet', 'dawn', 'drift', 'dusk', 'echo', 'ember',
+    'flare', 'forge', 'frontier', 'gate', 'haven', 'isle', 'light', 'moon',
+    'nebula', 'nexus', 'peak', 'realm', 'rift', 'ring', 'rise', 'shore',
+    'shard', 'sky', 'star', 'tide', 'vale', 'void',
+];
+
+function generateLobbyCode(): string {
+    const adj = LOBBY_ADJECTIVES[Math.floor(Math.random() * LOBBY_ADJECTIVES.length)];
+    const noun = LOBBY_NOUNS[Math.floor(Math.random() * LOBBY_NOUNS.length)];
+    const num = Math.floor(Math.random() * 900) + 100; // 100-999
+    return `${adj}-${noun}-${num}`;
+}
 
 export interface PlayerInfo {
     name: string;
@@ -144,7 +164,7 @@ export class SessionService {
     }
 
     private async generateLobbyId(): Promise<string> {
-        const id = humanId({separator: '-', capitalize: false});
+        const id = generateLobbyCode();
         await getDoc(doc(this.firestore, 'sessions', id));
         return id;
     }
