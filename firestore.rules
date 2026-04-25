@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /sessions/{sessionId} {
+      // Anyone may read — needed for joining, watching, and existence checks
+      allow read: if true;
+
+      // Anyone may create a new session with a valid initial structure
+      allow create: if isValidSession(request.resource.data);
+
+      // Anyone may update a session (join / leave / advance status)
+      // Validates the resulting document state after the write
+      allow update: if isValidSession(request.resource.data);
+
+      // The app never deletes sessions
+      allow delete: if false;
+    }
+  }
+
+  // ── helpers ──────────────────────────────────────────────────────────────
+
+  function isValidSession(data) {
+    return data.keys().hasAll(['status', 'players'])
+      // status must be one of the known enum values
+      && data.status is string
+      && data.status in ['lobby', 'voting', 'results']
+      // players must be a map with a reasonable upper-bound (prevents storage abuse)
+      && data.players is map
+      && data.players.size() <= 50;
+  }
+}
