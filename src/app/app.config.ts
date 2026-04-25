@@ -5,6 +5,11 @@ import { provideFirestore, getFirestore, connectFirestoreEmulator } from '@angul
 
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
+import { de_DE, provideNzI18n } from 'ng-zorro-antd/i18n';
+import { registerLocaleData } from '@angular/common';
+import de from '@angular/common/locales/de';
+
+registerLocaleData(de);
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,6 +22,6 @@ export const appConfig: ApplicationConfig = {
         connectFirestoreEmulator(firestore, 'localhost', 8080);
       }
       return firestore;
-    }),
+    }), provideNzI18n(de_DE),
   ],
 };
