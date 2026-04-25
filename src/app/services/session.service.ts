@@ -1,75 +1,209 @@
-import { Injectable, inject } from '@angular/core';
+import {Injectable, inject, signal} from '@angular/core';
+import {toSignal, toObservable} from '@angular/core/rxjs-interop';
 import {
-  Firestore,
-  collection,
-  addDoc,
-  doc,
-  getDoc,
-  onSnapshot,
-  updateDoc,
-  serverTimestamp,
+    Firestore,
+    doc,
+    setDoc,
+    getDoc,
+    onSnapshot,
+    updateDoc,
+    deleteField,
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import {Observable, of, switchMap} from 'rxjs';
+import {generate, suffixGenerators} from 'memorable-ids';
 
-export interface Session {
-  id?: string;
-  hostName: string;
-  agenda: string;
-  players: Record<string, { name: string; vote: string | null }>;
-  status: 'waiting' | 'voting' | 'results';
-  createdAt?: unknown;
+export interface PlayerInfo {
+    name: string;
+    speaker: boolean;
+    location: 'lobby' | 'voting' | 'results';
 }
 
-@Injectable({ providedIn: 'root' })
+export interface Session {
+    id: string;
+    players: Record<string, PlayerInfo>;
+    status: 'lobby' | 'voting' | 'results';
+}
+
+const USER_TITLES = [
+    'The ',
+    'The Argent ',
+    'The Barony of ',
+    'The Clan of ',
+    'The Council ',
+    'The Crimson ',
+    'The Deepwrought ',
+    'The Emirates of ',
+    'The Embers of ',
+    'The Federation of ',
+    'The Ghosts of ',
+    'The L1Z1X ',
+    'The Mahact ',
+    'The Mentak ',
+    'The Naalu ',
+    'The Naaz-Rokha ',
+    'The Nekro ',
+    'The Ral Nel ',
+    'The Titans of ',
+    'The Universities of ',
+    'The Vuil\'Raith ',
+    'The Xxcha ',
+    'The Yin ',
+    'The Tribes of ',
+    'Last ',
+    'Sardakk ',
+];
+
+const USER_NOUN = [
+    'Alliance',
+    'Arborec',
+    'Bastion',
+    'Brotherhood',
+    'Cabal',
+    'Coalition',
+    'Collective',
+    'Consortium',
+    'Creuss',
+    'Empyrean',
+    'Firmament',
+    'Flight',
+    'Gene Sorcerers',
+    'Hacan',
+    'Jol-Nar',
+    'Keleres',
+    'Kingdom',
+    'Letnev',
+    'Mindnet',
+    'Muaat',
+    'N\'orr',
+    'Nomad',
+    'Obsidian',
+    'Rebellion',
+    'Saar',
+    'Scholarate',
+    'Sol',
+    'Yssaril',
+    'Ul',
+    'Virus',
+    'Winnu',
+    'Xxcha',
+];
+
+@Injectable({providedIn: 'root'})
 export class SessionService {
-  private firestore = inject(Firestore);
+    private firestore = inject(Firestore);
 
-  /** Create a new voting session and return its generated ID. */
-  async createSession(hostName: string, agenda: string): Promise<string> {
-    const sessionsRef = collection(this.firestore, 'sessions');
-    const docRef = await addDoc(sessionsRef, {
-      hostName,
-      agenda,
-      players: {},
-      status: 'waiting',
-      createdAt: serverTimestamp(),
-    } satisfies Omit<Session, 'id'>);
-    return docRef.id;
-  }
+    private _activeSessionId = signal<string | null>(null);
 
-  /** Join an existing session as a player; returns false if session not found. */
-  async joinSession(sessionId: string, playerName: string): Promise<boolean> {
-    const sessionRef = doc(this.firestore, 'sessions', sessionId);
-    const snap = await getDoc(sessionRef);
-    if (!snap.exists()) return false;
-    await updateDoc(sessionRef, {
-      [`players.${playerName}`]: { name: playerName, vote: null },
-    });
-    return true;
-  }
+    /**
+     * The current session as a reactive signal. Reflects real-time Firestore updates.
+     * - `undefined` → not yet loaded (or no active session set)
+     * - `null`      → Firestore confirmed the document does not exist
+     * - `Session`   → live session data
+     */
+    readonly session = toSignal(
+        toObservable(this._activeSessionId).pipe(
+            switchMap(id => id ? this.watchSession(id) : of(undefined)),
+        ),
+    );
 
-  /** Subscribe to real-time session updates. */
-  watchSession(sessionId: string): Observable<Session | null> {
-    return new Observable(observer => {
-      const sessionRef = doc(this.firestore, 'sessions', sessionId);
-      const unsubscribe = onSnapshot(
-        sessionRef,
-        snap => observer.next(snap.exists() ? ({ id: snap.id, ...snap.data() } as Session) : null),
-        err => observer.error(err),
-      );
-      return () => unsubscribe();
-    });
-  }
+    /** Set (or clear) the active session that `session` signal will track. */
+    setActiveSession(id: string | null): void {
+        this._activeSessionId.set(id);
+    }
 
-  /** Cast a vote for a player. */
-  async castVote(sessionId: string, playerName: string, vote: string): Promise<void> {
-    const sessionRef = doc(this.firestore, 'sessions', sessionId);
-    await updateDoc(sessionRef, { [`players.${playerName}.vote`]: vote });
-  }
+    /** Get or generate a persistent random username stored in localStorage. */
+    getOrCreateUsername(): string {
+        let name = localStorage.getItem('twilight_username');
+        if (!name) {
+            name = this.generateUsername();
+            localStorage.setItem('twilight_username', name);
+        }
+        return name;
+    }
 
-  /** Advance session status (host only). */
-  async setStatus(sessionId: string, status: Session['status']): Promise<void> {
-    const sessionRef = doc(this.firestore, 'sessions', sessionId);
-    await updateDoc(sessionRef, { status });
-  }
+    /** Generate and persist a brand-new random username, replacing any existing one. */
+    rerollUsername(): string {
+        const name = this.generateUsername();
+        localStorage.setItem('twilight_username', name);
+        return name;
+    }
+
+    private generateUsername(): string {
+        const title = USER_TITLES[Math.floor(Math.random() * USER_TITLES.length)];
+        const noun = USER_NOUN[Math.floor(Math.random() * USER_NOUN.length)];
+        return `${title}${noun}`;
+    }
+
+    getOrCreatePlayerId(): string {
+        let id = localStorage.getItem('twilight_player_id');
+        if (!id) {
+            id = crypto.randomUUID();
+            localStorage.setItem('twilight_player_id', id);
+        }
+        return id;
+    }
+
+    private async generateLobbyId(): Promise<string> {
+        const id = generate({components: 2, suffix: suffixGenerators.number});
+        await getDoc(doc(this.firestore, 'sessions', id));
+        return id;
+    }
+
+    /** Create a new lobby session, add self as first player, return session ID. */
+    async createSession(): Promise<string> {
+        const playerId = this.getOrCreatePlayerId();
+        const playerName = this.getOrCreateUsername();
+        const sessionId = await this.generateLobbyId();
+        const sessionRef = doc(this.firestore, 'sessions', sessionId);
+        await setDoc(sessionRef, {
+            status: 'lobby',
+            players: {
+                [playerId]: {name: playerName, speaker: false, location: 'lobby'},
+            },
+        });
+        return sessionId;
+    }
+
+    /** Join an existing session. No-ops if already a player. Returns false if session not found. */
+    async joinSession(sessionId: string): Promise<boolean> {
+        const playerId = this.getOrCreatePlayerId();
+        const playerName = this.getOrCreateUsername();
+        const sessionRef = doc(this.firestore, 'sessions', sessionId);
+        const snap = await getDoc(sessionRef);
+        if (!snap.exists()) return false;
+        const session = snap.data() as Session;
+        if (session.players?.[playerId]) return true; // already in session, don't overwrite
+        await updateDoc(sessionRef, {
+            [`players.${playerId}`]: {name: playerName, speaker: false, location: 'lobby'},
+        });
+        return true;
+    }
+
+    /** Remove self from a session. */
+    async leaveSession(sessionId: string): Promise<void> {
+        const playerId = this.getOrCreatePlayerId();
+        const sessionRef = doc(this.firestore, 'sessions', sessionId);
+        await updateDoc(sessionRef, {
+            [`players.${playerId}`]: deleteField(),
+        });
+    }
+
+    /** Subscribe to real-time session updates. */
+    watchSession(sessionId: string): Observable<Session | null> {
+        return new Observable(observer => {
+            const sessionRef = doc(this.firestore, 'sessions', sessionId);
+            const unsubscribe = onSnapshot(
+                sessionRef,
+                snap => observer.next(snap.exists() ? ({id: snap.id, ...snap.data()} as Session) : null),
+                err => observer.error(err),
+            );
+            return () => unsubscribe();
+        });
+    }
+
+    /** Advance session status (host only). */
+    async setStatus(sessionId: string, status: Session['status']): Promise<void> {
+        const sessionRef = doc(this.firestore, 'sessions', sessionId);
+        await updateDoc(sessionRef, {status});
+    }
 }
