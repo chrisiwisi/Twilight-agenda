@@ -1,10 +1,4 @@
 {
-  "hosting": {
-    "predeploy": [
-      "npm install -g pnpm",
-      "npm run build"
-    ]
-  },
   "emulators": {
     "firestore": {
       "port": 8080

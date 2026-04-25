@@ -10,7 +10,7 @@ import {
     deleteField,
 } from '@angular/fire/firestore';
 import {Observable, of, switchMap} from 'rxjs';
-import {generate, suffixGenerators} from 'memorable-ids';
+import {humanId} from 'human-id';
 
 export interface PlayerInfo {
     name: string;
@@ -144,7 +144,7 @@ export class SessionService {
     }
 
     private async generateLobbyId(): Promise<string> {
-        const id = generate({components: 2, suffix: suffixGenerators.number});
+        const id = humanId({separator: '-', capitalize: false});
         await getDoc(doc(this.firestore, 'sessions', id));
         return id;
     }
