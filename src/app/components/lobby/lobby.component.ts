@@ -2,13 +2,11 @@ import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { SessionService, PlayerInfo } from '../../services/session.service';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-lobby',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [],
   templateUrl: './lobby.component.html',
 })
 export class LobbyComponent implements OnInit, OnDestroy {
@@ -26,7 +24,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
     this.sessionId = this.route.snapshot.paramMap.get('id') ?? '';
     this.subscription = this.sessionService.watchSession(this.sessionId).subscribe(session => {
       if (!session) {
-        this.router.navigate(['/']).then();
+        this.router.navigate(['/']);
         return;
       }
       this.players.set(
