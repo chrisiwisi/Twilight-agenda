@@ -1,4 +1,5 @@
-import {Injectable, inject} from '@angular/core';
+import {Injectable, inject, signal} from '@angular/core';
+import {toSignal, toObservable} from '@angular/core/rxjs-interop';
 import {
     Firestore,
     doc,
@@ -8,7 +9,7 @@ import {
     updateDoc,
     deleteField,
 } from '@angular/fire/firestore';
-import {Observable} from 'rxjs';
+import {Observable, of, switchMap} from 'rxjs';
 import {generate, suffixGenerators} from 'memorable-ids';
 
 export interface PlayerInfo {
@@ -91,6 +92,25 @@ const USER_NOUN = [
 export class SessionService {
     private firestore = inject(Firestore);
 
+    private _activeSessionId = signal<string | null>(null);
+
+    /**
+     * The current session as a reactive signal. Reflects real-time Firestore updates.
+     * - `undefined` → not yet loaded (or no active session set)
+     * - `null`      → Firestore confirmed the document does not exist
+     * - `Session`   → live session data
+     */
+    readonly session = toSignal(
+        toObservable(this._activeSessionId).pipe(
+            switchMap(id => id ? this.watchSession(id) : of(undefined)),
+        ),
+    );
+
+    /** Set (or clear) the active session that `session` signal will track. */
+    setActiveSession(id: string | null): void {
+        this._activeSessionId.set(id);
+    }
+
     /** Get or generate a persistent random username stored in localStorage. */
     getOrCreateUsername(): string {
         let name = localStorage.getItem('twilight_username');
@@ -133,13 +153,15 @@ export class SessionService {
         return sessionId;
     }
 
-    /** Join an existing session. Returns false if session not found. */
+    /** Join an existing session. No-ops if already a player. Returns false if session not found. */
     async joinSession(sessionId: string): Promise<boolean> {
         const playerId = this.getOrCreatePlayerId();
         const playerName = this.getOrCreateUsername();
         const sessionRef = doc(this.firestore, 'sessions', sessionId);
         const snap = await getDoc(sessionRef);
         if (!snap.exists()) return false;
+        const session = snap.data() as Session;
+        if (session.players?.[playerId]) return true; // already in session, don't overwrite
         await updateDoc(sessionRef, {
             [`players.${playerId}`]: {name: playerName, speaker: false, location: 'lobby'},
         });

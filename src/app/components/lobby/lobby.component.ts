@@ -1,7 +1,6 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { SessionService, PlayerInfo } from '../../services/session.service';
+import { SessionService } from '../../services/session.service';
 
 @Component({
   selector: 'app-lobby',
@@ -9,32 +8,33 @@ import { SessionService, PlayerInfo } from '../../services/session.service';
   imports: [],
   templateUrl: './lobby.component.html',
 })
-export class LobbyComponent implements OnInit, OnDestroy {
+export class LobbyComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private sessionService = inject(SessionService);
 
   protected sessionId = '';
-  protected players = signal<{ id: string; info: PlayerInfo }[]>([]);
   protected copyLabel = signal('Copy Code');
 
-  private subscription?: Subscription;
+  protected players = computed(() => {
+    const session = this.sessionService.session();
+    return session ? Object.entries(session.players).map(([id, info]) => ({ id, info })) : [];
+  });
 
-  ngOnInit() {
-    this.sessionId = this.route.snapshot.paramMap.get('id') ?? '';
-    this.subscription = this.sessionService.watchSession(this.sessionId).subscribe(session => {
-      if (!session) {
-        this.router.navigate(['/']);
-        return;
+  constructor() {
+    effect(() => {
+      if (this.sessionId && this.sessionService.session() === null) {
+        this.router.navigate(['/']).then();
       }
-      this.players.set(
-        Object.entries(session.players).map(([id, info]) => ({ id, info }))
-      );
     });
   }
 
-  ngOnDestroy() {
-    this.subscription?.unsubscribe();
+  ngOnInit() {
+    this.sessionId = this.route.snapshot.paramMap.get('id') ?? '';
+    this.sessionService.setActiveSession(this.sessionId);
+    this.sessionService.joinSession(this.sessionId).then(found => {
+      if (!found) this.router.navigate(['/']).then();
+    });
   }
 
   protected async leaveLobby() {
