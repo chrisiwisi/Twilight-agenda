@@ -9,9 +9,9 @@
 
 import {setGlobalOptions} from "firebase-functions";
 import * as logger from "firebase-functions/logger";
-import { onDocumentCreated } from 'firebase-functions/v2/firestore';
-import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp } from 'firebase-admin/app';
+import {onDocumentCreated} from 'firebase-functions/v2/firestore';
+import {getFirestore} from 'firebase-admin/firestore';
+import {initializeApp} from 'firebase-admin/app';
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
@@ -26,15 +26,15 @@ import { initializeApp } from 'firebase-admin/app';
 // functions should each use functions.runWith({ maxInstances: 10 }) instead.
 // In the v1 API, each function can only serve one request per container, so
 // this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+setGlobalOptions({maxInstances: 10});
 
 initializeApp();
 const db = getFirestore();
 
 export const onBallotSubmitted = onDocumentCreated(
   'votes/{voteId}/ballots/{playerId}',
-  async (event) => {
-    const { voteId, playerId } = event.params;
+  async event => {
+    const {voteId, playerId} = event.params;
 
     const [voteSnap, sessionId] = await getSessionId(voteId);
     if (!voteSnap || !sessionId) return;
@@ -49,12 +49,12 @@ export const onBallotSubmitted = onDocumentCreated(
 
     const update: Record<string, any> = {
       [`players.${playerId}.voted`]: true,
-      ...(allVoted && { status: 'results' }),
+      ...(allVoted && {status: 'results'}),
     };
 
     if (allVoted) {
       const results = await aggregateBallots(voteId);
-      await db.doc(`votes/${voteId}`).update({ results });
+      await db.doc(`votes/${voteId}`).update({results});
     }
 
     logger.info(`Player ${playerId} voted in session ${sessionId}. ${votedCount}/${totalPlayers} voted. Updating session with:`, update);
@@ -68,7 +68,9 @@ async function getSessionId(voteId: string): Promise<[FirebaseFirestore.Document
   return [voteSnap, voteSnap.data()!['sessionId']];
 }
 
-async function getPlayers(sessionRef: FirebaseFirestore.DocumentReference): Promise<Record<string, { voted: boolean }> | null> {
+async function getPlayers(sessionRef: FirebaseFirestore.DocumentReference): Promise<Record<string, {
+  voted: boolean
+}> | null> {
   const snap = await sessionRef.get();
   if (!snap.exists) return null;
   return snap.data()!['players'];
@@ -77,7 +79,7 @@ async function getPlayers(sessionRef: FirebaseFirestore.DocumentReference): Prom
 async function aggregateBallots(voteId: string): Promise<Record<string, number>> {
   const ballotsSnap = await db.collection(`votes/${voteId}/ballots`).get();
   return ballotsSnap.docs.reduce((acc, doc) => {
-    const { choice, influence } = doc.data();
+    const {choice, influence} = doc.data();
     const normalized = choice.trim().toLowerCase();
     acc[normalized] = (acc[normalized] ?? 0) + influence;
     return acc;
