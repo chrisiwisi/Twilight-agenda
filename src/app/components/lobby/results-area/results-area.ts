@@ -1,8 +1,7 @@
-import {Component, computed, inject} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {SessionService} from "../../../services/session.service";
 import {VOTE_ID, VotingService} from "src/app/services/vote.service";
 import {NzCardComponent} from "ng-zorro-antd/card";
-import {NzStatisticComponent} from "ng-zorro-antd/statistic";
 import {NzButtonComponent} from "ng-zorro-antd/button";
 import {ResultsComponent} from "./app-results.component";
 
@@ -10,7 +9,6 @@ import {ResultsComponent} from "./app-results.component";
   selector: 'app-results-area',
   imports: [
     NzCardComponent,
-    NzStatisticComponent,
     NzButtonComponent,
     ResultsComponent
   ],
