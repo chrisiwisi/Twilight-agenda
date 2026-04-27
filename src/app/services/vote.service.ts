@@ -48,12 +48,8 @@ export class VotingService implements OnDestroy {
    * Cloud Functions will react to new ballots and update the players voting state accordingly
    */
   async submitVote(playerId: string, ballot: Ballot): Promise<void> {
-    if (ballot.influence < 0) {
-      console.warn('influence must be >= 0.');
-      return;
-    }
     const ballotRef = doc(this.firestore, 'votes', this.voteId, 'ballots', playerId);
-    await setDoc(ballotRef, {
+    return setDoc(ballotRef, {
       ...ballot,
       submittedAt: Timestamp.now(),
     });

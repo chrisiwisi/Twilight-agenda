@@ -1,19 +1,18 @@
 import {Component, computed, inject, signal} from '@angular/core';
 import {Session, SessionService} from "../../../services/session.service";
-import {NzListComponent, NzListItemComponent} from "ng-zorro-antd/list";
 import {NzIconDirective} from "ng-zorro-antd/icon";
 import {NzTagComponent} from "ng-zorro-antd/tag";
 import {NzButtonComponent} from "ng-zorro-antd/button";
+import {PlayerList} from "../../player-list/player-list";
 
 @Component({
     selector: 'app-waiting-area',
-    imports: [
-        NzListComponent,
-        NzListItemComponent,
-        NzIconDirective,
-        NzTagComponent,
-        NzButtonComponent
-    ],
+  imports: [
+    NzIconDirective,
+    NzTagComponent,
+    NzButtonComponent,
+    PlayerList
+  ],
     templateUrl: './waiting-area.html',
     styleUrl: './waiting-area.scss',
 })

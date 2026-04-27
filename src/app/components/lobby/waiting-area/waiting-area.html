@@ -5,18 +5,7 @@
     </button>
 </nz-tag></p>
 
-<nz-list nzBordered class="player-list">
-    @for (player of players(); track player.id) {
-        <nz-list-item>
-            @if (player.info.speaker) {
-                <img src="assets/AgendaBlack.png" alt="speaker" class="speaker-icon" />
-            } @else {
-                <nz-icon nzType="user" nzTheme="outline" />
-            }
-            {{ player.info.name }}
-        </nz-list-item>
-    }
-</nz-list>
+<app-player-list/>
 
 <p class="waiting">Waiting for players… ({{ players()?.length }} joined)</p>
 

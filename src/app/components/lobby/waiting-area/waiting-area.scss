@@ -2,20 +2,6 @@
   margin-bottom: 1rem;
 }
 
-.player-list {
-  margin-bottom: 1.5rem;
-
-  & > nz-icon {
-    margin-right: 0.5rem;
-  }
-
-  .speaker-icon {
-    width: 1em;
-    height: 1em;
-    object-fit: contain;
-  }
-}
-
 .waiting {
   color: #888;
   margin-bottom: 1.5rem;

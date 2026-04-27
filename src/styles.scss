@@ -31,3 +31,17 @@ p {
 strong {
   font-weight: 600;
 }
+
+.player-list {
+  margin-bottom: 1.5rem;
+
+  nz-icon, img {
+    margin-right: 0.5rem;
+  }
+}
+
+.speaker-icon {
+  width: 1em;
+  height: 1em;
+  object-fit: contain;
+}

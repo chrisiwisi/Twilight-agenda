@@ -1,15 +1,8 @@
 <nz-card nzTitle="Results">
-    @if (results(); as results) {
-        @for (entry of results; track entry.choice) {
-            <nz-statistic
-                    [nzTitle]="entry.choice"
-                    [nzValue]="entry.influence"
-            />
-        }
-    } @else {
-        <p>Waiting for results...</p>
-    }
+    <app-results />
     <button nz-button nzType="primary" nzBlock (click)="startNewRound()" [disabled]="!sessionService.isSpeaker()">
         Start New Round
     </button>
 </nz-card>
+
+

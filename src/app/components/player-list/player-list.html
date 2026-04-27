@@ -1,0 +1,18 @@
+<nz-list nzBordered class="player-list">
+    @for (player of players(); track player.id) {
+        <nz-list-item>
+            @if (player.info.speaker) {
+                <img src="assets/AgendaBlack.png" alt="speaker" class="speaker-icon"/>
+            } @else {
+                <nz-icon nzType="user" nzTheme="outline"/>
+            }
+            {{ player.info.name }}
+
+            @if (showVotingStatus()) {
+                <div class="vote-indicator" [class.vote-indicator--voted]="player.info.voted">
+                    <span nz-icon [nzType]="player.info.voted ? 'check' : 'ellipsis'" nzTheme="outline"></span>
+                </div>
+            }
+        </nz-list-item>
+    }
+</nz-list>

@@ -1,22 +1,26 @@
-import {Component, inject} from '@angular/core';
+import {Component, computed, inject, signal} from '@angular/core';
 import {SessionService} from '../../../services/session.service';
 import {VotingService, Ballot, VOTE_ID} from '../../../services/vote.service';
 import {NzInputDirective} from "ng-zorro-antd/input";
 import {NzButtonComponent} from "ng-zorro-antd/button";
-import {NzSpaceCompactComponent} from "ng-zorro-antd/space";
-import {NzFormDirective} from "ng-zorro-antd/form";
+import {NzFormControlComponent, NzFormDirective, NzFormItemComponent} from "ng-zorro-antd/form";
 import {FormBuilder, ReactiveFormsModule, Validators} from "@angular/forms";
 import {NzInputNumberComponent} from "ng-zorro-antd/input-number";
+import {NzIconDirective} from "ng-zorro-antd/icon";
+import {PlayerList} from "../../player-list/player-list";
 
 @Component({
   selector: 'app-voting-area',
   imports: [
     NzInputDirective,
     NzButtonComponent,
-    NzSpaceCompactComponent,
     NzFormDirective,
     ReactiveFormsModule,
-    NzInputNumberComponent
+    NzInputNumberComponent,
+    NzFormItemComponent,
+    NzFormControlComponent,
+    NzIconDirective,
+    PlayerList
   ],
   templateUrl: './voting-area.html',
   styleUrl: './voting-area.scss',
@@ -30,10 +34,20 @@ export class VotingArea {
   protected votingService = inject(VotingService);
   private formBuilder = inject(FormBuilder);
 
+  private submitted = signal(false);
+
   voteForm = this.formBuilder.group({
     choice: ['', Validators.required],
     influence: [null, [Validators.required, Validators.min(0)]],
   });
+
+  // green once session confirms player.voted === true
+  confirmedBySession = computed(() => {
+    const playerId = this.sessionService.getOrCreatePlayerId();
+    return this.sessionService.session()?.players?.[playerId]?.voted === true;
+  });
+
+  hasVoted = computed(() => this.submitted() || this.confirmedBySession());
 
   protected onSubmitVote(): void {
     if (this.voteForm.invalid) return;
@@ -51,6 +65,7 @@ export class VotingArea {
 
   private submitBallot(ballot: Ballot) {
     const playerId = this.sessionService.getOrCreatePlayerId();
-    this.votingService.submitVote(playerId, ballot).then();
+    this.votingService.submitVote(playerId, ballot)
+      .then(() => this.submitted.set(true));
   }
 }
