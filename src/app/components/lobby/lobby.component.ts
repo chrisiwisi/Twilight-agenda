@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, OnInit, signal} from '@angular/core';
+import {Component, effect, inject, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {NzButtonModule} from 'ng-zorro-antd/button';
 import {NzIconModule} from 'ng-zorro-antd/icon';
@@ -33,14 +33,13 @@ export class LobbyComponent implements OnInit {
 
     ngOnInit() {
         this.sessionId = this.route.snapshot.paramMap.get('id') ?? '';
-        this.sessionService.setActiveSession(this.sessionId);
         this.sessionService.joinSession(this.sessionId).then(found => {
             if (!found) this.router.navigate(['/']).then();
         });
     }
 
     protected async leaveLobby() {
-        await this.sessionService.leaveSession(this.sessionId);
+        await this.sessionService.leaveSession();
         await this.router.navigate(['/']);
     }
 

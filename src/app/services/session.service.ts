@@ -43,10 +43,6 @@ export class SessionService {
         ),
     );
 
-    /** Set (or clear) the active session that `session` signal will track. */
-    setActiveSession(id: string | null): void {
-        this._activeSessionId.set(id);
-    }
 
     /** Get or generate a persistent random username stored in localStorage. */
     getOrCreateUsername(): string {
@@ -85,6 +81,7 @@ export class SessionService {
                 [playerId]: {name: playerName, speaker: false, location: 'lobby'},
             },
         });
+        this._activeSessionId.set(sessionId);
         return sessionId;
     }
 
@@ -96,20 +93,20 @@ export class SessionService {
         const snap = await getDoc(sessionRef);
         if (!snap.exists()) return false;
         const session = snap.data() as Session;
-        if (session.players?.[playerId]) return true; // already in session, don't overwrite
-        await updateDoc(sessionRef, {
-            [`players.${playerId}`]: {name: playerName, speaker: false, location: 'lobby'},
-        });
+        if (!session.players?.[playerId]) {
+            await updateDoc(sessionRef, {
+                [`players.${playerId}`]: {name: playerName, speaker: false, location: 'lobby'},
+            });
+        }
+        this._activeSessionId.set(sessionId);
         return true;
     }
 
-    /** Remove self from a session. */
-    async leaveSession(sessionId: string): Promise<void> {
+    /** Remove self from the active session. */
+    async leaveSession(): Promise<void> {
         const playerId = this.getOrCreatePlayerId();
-        const sessionRef = doc(this.firestore, 'sessions', sessionId);
-        await updateDoc(sessionRef, {
-            [`players.${playerId}`]: deleteField(),
-        });
+        await this.updateSession({[`players.${playerId}`]: deleteField()});
+        this._activeSessionId.set(null);
     }
 
     /** Subscribe to real-time session updates. */
@@ -126,8 +123,22 @@ export class SessionService {
     }
 
     /** Advance session status (host only). */
-    async setStatus(sessionId: string, status: Session['status']): Promise<void> {
-        const sessionRef = doc(this.firestore, 'sessions', sessionId);
-        await updateDoc(sessionRef, {status});
+    async startVote(): Promise<void> {
+        this.updateSession({status: 'voting'}).then();
+    }
+
+    isSpeaker(): boolean {
+        const playerId = this.getOrCreatePlayerId();
+        return this.session()?.players?.[playerId]?.speaker ?? false;
+    }
+
+    private async updateSession(data: {[p: string]: any}): Promise<void> {
+        const sessionId = this._activeSessionId();
+        if (!sessionId) {
+            console.warn('Session id not set.');
+            return;
+        }
+        const sessionRef = doc(this.firestore, 'sessions', this._activeSessionId()!);
+        await updateDoc(sessionRef, data);
     }
 }
