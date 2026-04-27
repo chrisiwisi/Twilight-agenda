@@ -171,4 +171,19 @@ export class SessionService {
     }
 
 
+  async resetState(): Promise<void> {
+    const session = this.session();
+    if (!session) return;
+
+    const updates: Record<string, any> = {
+      status: 'lobby',
+      voteId: deleteField(),
+    };
+
+    for (const playerId of Object.keys(session.players)) {
+      updates[`players.${playerId}.voted`] = false;
+    }
+
+    await this.updateSession(updates);
+  }
 }

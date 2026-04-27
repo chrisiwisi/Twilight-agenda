@@ -1,6 +1,6 @@
 import {Component, inject} from '@angular/core';
 import {SessionService} from '../../../services/session.service';
-import {VotingService, Ballot} from '../../../services/vote.service';
+import {VotingService, Ballot, VOTE_ID} from '../../../services/vote.service';
 import {NzInputDirective} from "ng-zorro-antd/input";
 import {NzButtonComponent} from "ng-zorro-antd/button";
 import {NzSpaceCompactComponent} from "ng-zorro-antd/space";
@@ -20,7 +20,10 @@ import {NzInputNumberComponent} from "ng-zorro-antd/input-number";
   ],
   templateUrl: './voting-area.html',
   styleUrl: './voting-area.scss',
-  providers: [VotingService],
+  providers: [
+    VotingService,
+    { provide: VOTE_ID, useFactory: () => inject(SessionService).session()?.voteId }
+  ]
 })
 export class VotingArea {
   protected sessionService = inject(SessionService);
@@ -48,10 +51,6 @@ export class VotingArea {
 
   private submitBallot(ballot: Ballot) {
     const playerId = this.sessionService.getOrCreatePlayerId();
-    const voteId = this.sessionService.session()?.voteId;
-    if (!voteId) {
-      return console.warn('No active vote found.');
-    }
-    this.votingService.submitVote(voteId, playerId, ballot).then();
+    this.votingService.submitVote(playerId, ballot).then();
   }
 }

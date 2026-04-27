@@ -32,34 +32,54 @@ initializeApp();
 const db = getFirestore();
 
 export const onBallotSubmitted = onDocumentCreated(
-    'votes/{voteId}/ballots/{playerId}',
-    async (event) => {
-        const { voteId, playerId } = event.params;
+  'votes/{voteId}/ballots/{playerId}',
+  async (event) => {
+    const { voteId, playerId } = event.params;
 
-        // Get the parent vote doc to find the session
-        const voteSnap = await db.doc(`votes/${voteId}`).get();
-        if (!voteSnap.exists) return;
-        const { sessionId } = voteSnap.data()!;
+    const [voteSnap, sessionId] = await getSessionId(voteId);
+    if (!voteSnap || !sessionId) return;
 
-        // Get the session to know total player count
-        const sessionRef = db.doc(`sessions/${sessionId}`);
-        const sessionSnap = await sessionRef.get();
-        if (!sessionSnap.exists) return;
-        const players = sessionSnap.data()!['players'] as Record<string, { voted: boolean }>;
+    const sessionRef = db.doc(`sessions/${sessionId}`);
+    const players = await getPlayers(sessionRef);
+    if (!players) return;
 
-        const totalPlayers = Object.keys(players).length;
+    const totalPlayers = Object.keys(players).length;
+    const votedCount = Object.values(players).filter(p => p.voted).length + 1;
+    const allVoted = votedCount >= totalPlayers;
 
-        // Mark this player as voted + check if all done — atomically
-        const votedCount = Object.values(players).filter(p => p.voted).length + 1; // +1 for current
+    const update: Record<string, any> = {
+      [`players.${playerId}.voted`]: true,
+      ...(allVoted && { status: 'results' }),
+    };
 
-        const update: Record<string, any> = {
-            [`players.${playerId}.voted`]: true,
-        };
+    if (allVoted) {
+      const results = await aggregateBallots(voteId);
+      await db.doc(`votes/${voteId}`).update({ results });
+    }
 
-        if (votedCount >= totalPlayers) {
-            update['status'] = 'results';
-        }
-        logger.info(`Player ${playerId} voted in session ${sessionId}. ${votedCount}/${totalPlayers} voted. Updating session with:`, update);
-        await sessionRef.update(update);
-    },
+    logger.info(`Player ${playerId} voted in session ${sessionId}. ${votedCount}/${totalPlayers} voted. Updating session with:`, update);
+    await sessionRef.update(update);
+  },
 );
+
+async function getSessionId(voteId: string): Promise<[FirebaseFirestore.DocumentSnapshot | null, string | null]> {
+  const voteSnap = await db.doc(`votes/${voteId}`).get();
+  if (!voteSnap.exists) return [null, null];
+  return [voteSnap, voteSnap.data()!['sessionId']];
+}
+
+async function getPlayers(sessionRef: FirebaseFirestore.DocumentReference): Promise<Record<string, { voted: boolean }> | null> {
+  const snap = await sessionRef.get();
+  if (!snap.exists) return null;
+  return snap.data()!['players'];
+}
+
+async function aggregateBallots(voteId: string): Promise<Record<string, number>> {
+  const ballotsSnap = await db.collection(`votes/${voteId}/ballots`).get();
+  return ballotsSnap.docs.reduce((acc, doc) => {
+    const { choice, influence } = doc.data();
+    const normalized = choice.trim().toLowerCase();
+    acc[normalized] = (acc[normalized] ?? 0) + influence;
+    return acc;
+  }, {} as Record<string, number>);
+}
