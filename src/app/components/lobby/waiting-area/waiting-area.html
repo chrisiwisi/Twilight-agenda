@@ -8,7 +8,11 @@
 <nz-list nzBordered class="player-list">
     @for (player of players(); track player.id) {
         <nz-list-item>
-            <nz-icon nzType="user" nzTheme="outline" style="margin-right: 0.5rem;" />
+            @if (player.info.speaker) {
+                <img src="assets/AgendaBlack.png" alt="speaker" class="speaker-icon" />
+            } @else {
+                <nz-icon nzType="user" nzTheme="outline" />
+            }
             {{ player.info.name }}
         </nz-list-item>
     }
@@ -16,6 +20,10 @@
 
 <p class="waiting">Waiting for players… ({{ players()?.length }} joined)</p>
 
-<button nz-button nzType="primary" nzSize="large" nzBlock (click)="startVote()">
+<button nz-button nzType="default" nzSize="large" nzBlock (click)="takeSpeaker()" [disabled]="sessionService.isSpeaker()">
+    I am the speaker
+</button>
+
+<button nz-button nzType="primary" nzSize="large" nzBlock (click)="startVote()" [disabled]="!sessionService.isSpeaker()">
     Start Vote
 </button>

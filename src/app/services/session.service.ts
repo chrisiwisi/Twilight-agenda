@@ -124,6 +124,7 @@ export class SessionService {
 
     /** Advance session status (host only). */
     async startVote(): Promise<void> {
+        if (!this.isSpeaker()) {return ;}
         this.updateSession({status: 'voting'}).then();
     }
 
@@ -140,5 +141,16 @@ export class SessionService {
         }
         const sessionRef = doc(this.firestore, 'sessions', this._activeSessionId()!);
         await updateDoc(sessionRef, data);
+    }
+
+    takeSpeaker() {
+        const playerId = this.getOrCreatePlayerId();
+        const players = this.session()?.players ?? {};
+        const updates: Record<string, any> = {};
+        for (const id of Object.keys(players)) {
+            updates[`players.${id}.speaker`] = false;
+        }
+        updates[`players.${playerId}.speaker`] = true;
+        this.updateSession(updates).then();
     }
 }

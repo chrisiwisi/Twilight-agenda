@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, signal} from '@angular/core';
+import {Component, computed, inject, signal} from '@angular/core';
 import {Session, SessionService} from "../../../services/session.service";
 import {NzListComponent, NzListItemComponent} from "ng-zorro-antd/list";
 import {NzIconDirective} from "ng-zorro-antd/icon";
@@ -45,6 +45,11 @@ export class WaitingArea {
     }
 
     protected startVote() {
-        // future: advance to voting phase
+        // TODO open dialog to chose which agenda
+        this.sessionService.startVote().then();
+    }
+
+    protected takeSpeaker() {
+        this.sessionService.takeSpeaker();
     }
 }

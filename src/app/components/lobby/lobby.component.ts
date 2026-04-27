@@ -50,4 +50,8 @@ export class LobbyComponent implements OnInit {
         }).then(() => console.log('Shared successfully'))
             .catch((error) => console.log('Error sharing:', error));
     }
+
+    protected shareExists() {
+        return !!navigator.share;
+    }
 }
