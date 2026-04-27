@@ -1,33 +1,25 @@
 <div class="lobby">
-  <header class="lobby-header">
-    <button nz-button nzType="text" (click)="leaveLobby()">
-      <nz-icon nzType="arrow-left" nzTheme="outline" /> Leave
-    </button>
-    <h2>Lobby</h2>
-    <button nz-button nzType="primary" nzShape="circle" (click)="share()">
-        <nz-icon nzType="share-alt" nzTheme="outline" />
-    </button>
-  </header>
+    <header class="lobby-header">
+        <button nz-button nzType="text" (click)="leaveLobby()">
+            <nz-icon nzType="arrow-left" nzTheme="outline"/>
+            Leave
+        </button>
+        <h2>{{sessionService.session()?.status}}</h2>
+        <button nz-button nzType="primary" nzShape="circle" (click)="share()">
+            <nz-icon nzType="share-alt" nzTheme="outline"/>
+        </button>
+    </header>
 
-  <p class="lobby-code">Code: <nz-tag nzColor="blue">
-      {{ sessionId }}
-      <button nz-button nzType="text" (click)="copyCode()">
-          <nz-icon [nzType]="copyLabel() === 'Copied!' ? 'check' : 'copy'" nzTheme="outline" />
-      </button>
-  </nz-tag></p>
-
-  <nz-list nzBordered class="player-list">
-    @for (player of players(); track player.id) {
-      <nz-list-item>
-        <nz-icon nzType="user" nzTheme="outline" style="margin-right: 0.5rem;" />
-        {{ player.info.name }}
-      </nz-list-item>
+    @switch (sessionService.session()?.status) {
+        @case ('lobby') {
+            <app-waiting-area/>
+        }
+        @case ('voting') {
+            <app-voting-area/>
+        }
+        @case ('results') {
+            <app-results-area/>
+        }
     }
-  </nz-list>
 
-  <p class="waiting">Waiting for players… ({{ players().length }} joined)</p>
-
-  <button nz-button nzType="primary" nzSize="large" nzBlock (click)="startVote()">
-    Start Vote
-  </button>
 </div>

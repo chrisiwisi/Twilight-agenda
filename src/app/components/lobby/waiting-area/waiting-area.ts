@@ -1,0 +1,50 @@
+import {Component, computed, effect, inject, input, signal} from '@angular/core';
+import {Session, SessionService} from "../../../services/session.service";
+import {NzListComponent, NzListItemComponent} from "ng-zorro-antd/list";
+import {NzIconDirective} from "ng-zorro-antd/icon";
+import {NzTagComponent} from "ng-zorro-antd/tag";
+import {NzButtonComponent} from "ng-zorro-antd/button";
+
+@Component({
+    selector: 'app-waiting-area',
+    imports: [
+        NzListComponent,
+        NzListItemComponent,
+        NzIconDirective,
+        NzTagComponent,
+        NzButtonComponent
+    ],
+    templateUrl: './waiting-area.html',
+    styleUrl: './waiting-area.scss',
+})
+export class WaitingArea {
+    sessionService: SessionService = inject(SessionService);
+
+    protected copyLabel = signal('Copy Code');
+
+    get session(): Session | null | undefined {
+        return this.sessionService.session();
+    }
+
+    protected players = computed(() => {
+        if (!this.session) {
+            return null;
+        }
+        return Object.entries(this.session!.players)
+            .map(([id, info]) => ({id, info}));
+    });
+
+    protected copyCode() {
+        if (!this.session) {
+            return;
+        }
+        navigator.clipboard.writeText(this.session!.id).then(() => {
+            this.copyLabel.set('Copied!');
+            setTimeout(() => this.copyLabel.set('Copy Code'), 2000);
+        });
+    }
+
+    protected startVote() {
+        // future: advance to voting phase
+    }
+}

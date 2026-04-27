@@ -1,0 +1,21 @@
+<p class="lobby-code">Code: <nz-tag nzColor="blue">
+    {{ session?.id }}
+    <button nz-button nzType="text" (click)="copyCode()">
+        <nz-icon [nzType]="copyLabel() === 'Copied!' ? 'check' : 'copy'" nzTheme="outline" />
+    </button>
+</nz-tag></p>
+
+<nz-list nzBordered class="player-list">
+    @for (player of players(); track player.id) {
+        <nz-list-item>
+            <nz-icon nzType="user" nzTheme="outline" style="margin-right: 0.5rem;" />
+            {{ player.info.name }}
+        </nz-list-item>
+    }
+</nz-list>
+
+<p class="waiting">Waiting for players… ({{ players()?.length }} joined)</p>
+
+<button nz-button nzType="primary" nzSize="large" nzBlock (click)="startVote()">
+    Start Vote
+</button>
