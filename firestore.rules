@@ -16,17 +16,48 @@ service cloud.firestore {
       // The app never deletes sessions
       allow delete: if false;
     }
-  }
 
+    match /votes/{voteId} {
+      allow read: if true;
+      allow create: if isValidVote(request.resource.data);
+      allow update: if false; // only cloud function (admin SDK) touches this
+      allow delete: if false;
+    }
+
+    match /votes/{voteId}/ballots/{playerId} {
+      allow read: if false;
+      allow create, update: if isValidBallot(request.resource.data)
+        && isPlayerInSession(voteId, playerId, database);
+      allow delete: if false;
+    }
+  }
   // ── helpers ──────────────────────────────────────────────────────────────
 
   function isValidSession(data) {
     return data.keys().hasAll(['status', 'players'])
-      // status must be one of the known enum values
       && data.status is string
       && data.status in ['lobby', 'voting', 'results']
-      // players must be a map with a reasonable upper-bound (prevents storage abuse)
       && data.players is map
-      && data.players.size() <= 50;
+      && data.players.size() <= 50
+      && (!('voteId' in data) || data.voteId is string);
+  }
+
+  function isValidVote(data) {
+    return data.keys().hasAll(['sessionId', 'createdAt'])
+      && data.sessionId is string;
+  }
+
+  function isValidBallot(data) {
+    return data.keys().hasAll(['choice', 'influence', 'submittedAt'])
+      && data.choice is string
+      && data.choice.size() > 0
+      && data.influence is number
+      && data.influence >= 0;
+  }
+
+  function isPlayerInSession(voteId, playerId, database) {
+    let sessionId = get(/databases/$(database)/documents/votes/$(voteId)).data.sessionId;
+    let session = get(/databases/$(database)/documents/sessions/$(sessionId)).data;
+    return playerId in session.players;
   }
 }

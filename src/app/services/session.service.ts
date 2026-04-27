@@ -8,6 +8,7 @@ import {
     onSnapshot,
     updateDoc,
     deleteField,
+    serverTimestamp,
 } from '@angular/fire/firestore';
 import {Observable, of, switchMap} from 'rxjs';
 import {NameGenerationService} from './name-generation.service';
@@ -15,15 +16,21 @@ import {NameGenerationService} from './name-generation.service';
 export interface PlayerInfo {
     name: string;
     speaker: boolean;
-    location: 'lobby' | 'voting' | 'results';
+    voted: boolean;
 }
 
 export interface Session {
     id: string;
     players: Record<string, PlayerInfo>;
     status: 'lobby' | 'voting' | 'results';
+    /** Set when the session transitions to 'voting'. Points to the active vote document. */
+    voteId?: string;
 }
 
+/*
+* I can already see this class has too much responsibility and should be split. But for the sake of time, I'm going to let it be for now.
+* TODO clean this up
+*/
 @Injectable({providedIn: 'root'})
 export class SessionService {
     private firestore = inject(Firestore);
@@ -78,7 +85,7 @@ export class SessionService {
         await setDoc(sessionRef, {
             status: 'lobby',
             players: {
-                [playerId]: {name: playerName, speaker: false, location: 'lobby'},
+                [playerId]: {name: playerName, speaker: false, voted: false},
             },
         });
         this._activeSessionId.set(sessionId);
@@ -95,7 +102,7 @@ export class SessionService {
         const session = snap.data() as Session;
         if (!session.players?.[playerId]) {
             await updateDoc(sessionRef, {
-                [`players.${playerId}`]: {name: playerName, speaker: false, location: 'lobby'},
+                [`players.${playerId}`]: {name: playerName, speaker: false, voted: false},
             });
         }
         this._activeSessionId.set(sessionId);
@@ -122,10 +129,19 @@ export class SessionService {
         });
     }
 
-    /** Advance session status (host only). */
     async startVote(): Promise<void> {
-        if (!this.isSpeaker()) {return ;}
-        this.updateSession({status: 'voting'}).then();
+        if (!this.isSpeaker()) { return; }
+        const sessionId = this._activeSessionId();
+        if (!sessionId) { return; }
+
+        const voteId = crypto.randomUUID();
+        const voteRef = doc(this.firestore, 'votes', voteId);
+        await setDoc(voteRef, {
+            sessionId,
+            createdAt: serverTimestamp(),
+        });
+
+        await this.updateSession({ status: 'voting', voteId });
     }
 
     isSpeaker(): boolean {
@@ -153,4 +169,6 @@ export class SessionService {
         updates[`players.${playerId}.speaker`] = true;
         this.updateSession(updates).then();
     }
+
+
 }

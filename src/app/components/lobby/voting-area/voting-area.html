@@ -1,1 +1,34 @@
-<p>voting-area works!</p>
+<form nz-form [formGroup]="voteForm" (ngSubmit)="onSubmitVote()">
+    <nz-space-compact>
+        <input
+                nz-input
+                placeholder="Choice"
+                formControlName="choice"
+                [style.width.%]="60"
+        />
+        <nz-input-number
+                formControlName="influence"
+                [nzMin]="0"
+                [nzPlaceHolder]="'Influence'"
+                [style.width.%]="25"
+        />
+        <button
+                nz-button
+                nzType="primary"
+                type="submit"
+                [disabled]="voteForm.invalid"
+                [style.width.%]="15"
+        >
+            Submit
+        </button>
+    </nz-space-compact>
+    <button
+            nz-button
+            nzType="default"
+            type="button"
+            nzDanger
+            (click)="onAbstain()"
+    >
+        Abstain
+    </button>
+</form>

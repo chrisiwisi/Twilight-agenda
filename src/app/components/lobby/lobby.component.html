@@ -5,13 +5,11 @@
             Leave
         </button>
         <h2>{{sessionService.session()?.status}}</h2>
-        <span>
-            @if (shareExists()) {
-                <button nz-button nzType="primary" nzShape="circle" (click)="share()">
-                    <nz-icon nzType="share-alt" nzTheme="outline"/>
-                </button>
-            }
-        </span>
+        @if (shareExists()) {
+            <button nz-button nzType="primary" nzShape="circle" (click)="share()">
+                <nz-icon nzType="share-alt" nzTheme="outline"/>
+            </button>
+        }
     </header>
 
     @switch (sessionService.session()?.status) {
