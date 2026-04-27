@@ -8,6 +8,7 @@ import {
     onSnapshot,
     updateDoc,
     deleteField,
+    serverTimestamp,
 } from '@angular/fire/firestore';
 import {Observable, of, switchMap} from 'rxjs';
 import {NameGenerationService} from './name-generation.service';
@@ -15,15 +16,21 @@ import {NameGenerationService} from './name-generation.service';
 export interface PlayerInfo {
     name: string;
     speaker: boolean;
-    location: 'lobby' | 'voting' | 'results';
+    voted: boolean;
 }
 
 export interface Session {
     id: string;
     players: Record<string, PlayerInfo>;
     status: 'lobby' | 'voting' | 'results';
+    /** Set when the session transitions to 'voting'. Points to the active vote document. */
+    voteId?: string;
 }
 
+/*
+* I can already see this class has too much responsibility and should be split. But for the sake of time, I'm going to let it be for now.
+* TODO clean this up
+*/
 @Injectable({providedIn: 'root'})
 export class SessionService {
     private firestore = inject(Firestore);
@@ -43,10 +50,6 @@ export class SessionService {
         ),
     );
 
-    /** Set (or clear) the active session that `session` signal will track. */
-    setActiveSession(id: string | null): void {
-        this._activeSessionId.set(id);
-    }
 
     /** Get or generate a persistent random username stored in localStorage. */
     getOrCreateUsername(): string {
@@ -82,9 +85,10 @@ export class SessionService {
         await setDoc(sessionRef, {
             status: 'lobby',
             players: {
-                [playerId]: {name: playerName, speaker: false, location: 'lobby'},
+                [playerId]: {name: playerName, speaker: false, voted: false},
             },
         });
+        this._activeSessionId.set(sessionId);
         return sessionId;
     }
 
@@ -96,20 +100,20 @@ export class SessionService {
         const snap = await getDoc(sessionRef);
         if (!snap.exists()) return false;
         const session = snap.data() as Session;
-        if (session.players?.[playerId]) return true; // already in session, don't overwrite
-        await updateDoc(sessionRef, {
-            [`players.${playerId}`]: {name: playerName, speaker: false, location: 'lobby'},
-        });
+        if (!session.players?.[playerId]) {
+            await updateDoc(sessionRef, {
+                [`players.${playerId}`]: {name: playerName, speaker: false, voted: false},
+            });
+        }
+        this._activeSessionId.set(sessionId);
         return true;
     }
 
-    /** Remove self from a session. */
-    async leaveSession(sessionId: string): Promise<void> {
+    /** Remove self from the active session. */
+    async leaveSession(): Promise<void> {
         const playerId = this.getOrCreatePlayerId();
-        const sessionRef = doc(this.firestore, 'sessions', sessionId);
-        await updateDoc(sessionRef, {
-            [`players.${playerId}`]: deleteField(),
-        });
+        await this.updateSession({[`players.${playerId}`]: deleteField()});
+        this._activeSessionId.set(null);
     }
 
     /** Subscribe to real-time session updates. */
@@ -125,9 +129,61 @@ export class SessionService {
         });
     }
 
-    /** Advance session status (host only). */
-    async setStatus(sessionId: string, status: Session['status']): Promise<void> {
-        const sessionRef = doc(this.firestore, 'sessions', sessionId);
-        await updateDoc(sessionRef, {status});
+    async startVote(): Promise<void> {
+        if (!this.isSpeaker()) { return; }
+        const sessionId = this._activeSessionId();
+        if (!sessionId) { return; }
+
+        const voteId = crypto.randomUUID();
+        const voteRef = doc(this.firestore, 'votes', voteId);
+        await setDoc(voteRef, {
+            sessionId,
+            createdAt: serverTimestamp(),
+        });
+
+        await this.updateSession({ status: 'voting', voteId });
     }
+
+    isSpeaker(): boolean {
+        const playerId = this.getOrCreatePlayerId();
+        return this.session()?.players?.[playerId]?.speaker ?? false;
+    }
+
+    private async updateSession(data: {[p: string]: any}): Promise<void> {
+        const sessionId = this._activeSessionId();
+        if (!sessionId) {
+            console.warn('Session id not set.');
+            return;
+        }
+        const sessionRef = doc(this.firestore, 'sessions', this._activeSessionId()!);
+        await updateDoc(sessionRef, data);
+    }
+
+    takeSpeaker() {
+        const playerId = this.getOrCreatePlayerId();
+        const players = this.session()?.players ?? {};
+        const updates: Record<string, any> = {};
+        for (const id of Object.keys(players)) {
+            updates[`players.${id}.speaker`] = false;
+        }
+        updates[`players.${playerId}.speaker`] = true;
+        this.updateSession(updates).then();
+    }
+
+
+  async resetState(): Promise<void> {
+    const session = this.session();
+    if (!session) return;
+
+    const updates: Record<string, any> = {
+      status: 'lobby',
+      voteId: deleteField(),
+    };
+
+    for (const playerId of Object.keys(session.players)) {
+      updates[`players.${playerId}.voted`] = false;
+    }
+
+    await this.updateSession(updates);
+  }
 }

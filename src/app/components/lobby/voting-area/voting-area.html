@@ -1,0 +1,44 @@
+@if (!hasVoted()) {
+    <form nz-form [formGroup]="voteForm" (ngSubmit)="onSubmitVote()">
+        <nz-form-item>
+            <nz-form-control [nzErrorTip]="'Please enter a choice'">
+                <input
+                        nz-input
+                        nzSize="large"
+                        placeholder="What are you voting for?"
+                        formControlName="choice"
+                />
+            </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+            <nz-form-control [nzErrorTip]="'Influence must be 0 or more'">
+                <nz-input-number
+                        formControlName="influence"
+                        [nzMin]="0"
+                        nzSize="large"
+                        nzPlaceHolder="Influence"
+                        [style.width.%]="100"
+                />
+            </nz-form-control>
+        </nz-form-item>
+
+        <button nz-button nzType="primary" nzSize="large" nzBlock type="submit" [disabled]="voteForm.invalid">
+            Submit
+        </button>
+        <button nz-button nzType="text" nzDanger nzBlock type="button" class="abstain" (click)="onAbstain()">
+            Abstain
+        </button>
+    </form>
+} @else {
+    <div class="confirmation">
+        <div class="confirmation__circle" [class.confirmation__circle--pending]="!confirmedBySession()">
+            <span nz-icon [nzType]="confirmedBySession() ? 'check' : 'loading'" nzTheme="outline"></span>
+        </div>
+        <p class="confirmation__label">
+            {{ confirmedBySession() ? 'Vote submitted!' : 'Confirming…' }}
+        </p>
+    </div>
+}
+
+<app-player-list [showVotingStatus]="true"/>

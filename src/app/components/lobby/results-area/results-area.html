@@ -1,0 +1,8 @@
+<nz-card nzTitle="Results">
+    <app-results />
+    <button nz-button nzType="primary" nzBlock (click)="startNewRound()" [disabled]="!sessionService.isSpeaker()">
+        Start New Round
+    </button>
+</nz-card>
+
+

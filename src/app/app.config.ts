@@ -8,6 +8,7 @@ import { environment } from '../environments/environment';
 import { de_DE, provideNzI18n } from 'ng-zorro-antd/i18n';
 import { registerLocaleData } from '@angular/common';
 import de from '@angular/common/locales/de';
+import {connectFunctionsEmulator, getFunctions, provideFunctions} from "@angular/fire/functions";
 
 registerLocaleData(de);
 
@@ -22,6 +23,14 @@ export const appConfig: ApplicationConfig = {
         connectFirestoreEmulator(firestore, 'localhost', 8080);
       }
       return firestore;
-    }), provideNzI18n(de_DE),
+    }),
+    provideFunctions(() => {
+        const functions = getFunctions();
+        if (!environment.production) {
+            connectFunctionsEmulator(functions, 'localhost', 8081);
+        }
+        return functions;
+    }),
+    provideNzI18n(de_DE),
   ],
 };

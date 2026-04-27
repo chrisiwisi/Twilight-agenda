@@ -1,0 +1,35 @@
+.confirmation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 48px 0;
+
+  &__circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #52c41a; // Ant green
+    color: white;
+    font-size: 36px;
+    transition: background 0.3s ease;
+
+    &--pending {
+      background: #faad14; // Ant yellow
+    }
+  }
+
+  &__label {
+    font-size: 16px;
+    color: #595959;
+    margin: 0;
+  }
+}
+
+.abstain {
+  margin: 0.5rem 0;
+}
