@@ -55,17 +55,16 @@ export class VotingArea {
     if (!choice || influence == null) {
       return console.warn('Choice and influence are required.');
     }
-    const ballot: Ballot = { choice, influence };
+    const ballot: Ballot = { choice, influence, playerId: this.sessionService.getOrCreatePlayerId() };
     this.submitBallot(ballot);
   }
 
   protected onAbstain() {
-    this.submitBallot({ choice: 'abstain', influence: 0 });
+    this.submitBallot({ choice: 'abstain', influence: 0, playerId: this.sessionService.getOrCreatePlayerId() });
   }
 
   private submitBallot(ballot: Ballot) {
-    const playerId = this.sessionService.getOrCreatePlayerId();
-    this.votingService.submitVote(playerId, ballot)
+    this.votingService.submitVote(ballot)
       .then(() => this.submitted.set(true));
   }
 }

@@ -3,12 +3,15 @@ import {
   Firestore,
   Timestamp,
   doc,
+  collection,
   setDoc, onSnapshot,
 } from '@angular/fire/firestore';
+import {Observable} from "rxjs";
 
 export const VOTE_ID = new InjectionToken<string>('VOTE_ID');
 
 export interface Ballot {
+  playerId: string;
   choice: string;
   influence: number;
 }
@@ -47,11 +50,25 @@ export class VotingService implements OnDestroy {
    * Path: votes/{voteId}/ballots/{playerId}
    * Cloud Functions will react to new ballots and update the players voting state accordingly
    */
-  async submitVote(playerId: string, ballot: Ballot): Promise<void> {
-    const ballotRef = doc(this.firestore, 'votes', this.voteId, 'ballots', playerId);
+  async submitVote(ballot: Ballot): Promise<void> {
+    if (!ballot.playerId) return;
+    const ballotRef = doc(this.firestore, 'votes', this.voteId, 'ballots', ballot.playerId);
     return setDoc(ballotRef, {
       ...ballot,
       submittedAt: Timestamp.now(),
+    });
+  }
+
+  getVoteDetails(): Observable<Ballot[]> {
+    return new Observable<Ballot[]>(observer => {
+      const ballotsRef = collection(this.firestore, 'votes', this.voteId, 'ballots');
+      return onSnapshot(
+        ballotsRef,
+        snap => observer.next(
+          snap.docs.map(d => ({ playerId: d.id, ...d.data() } as Ballot))
+        ),
+        err => observer.error(err),
+      );
     });
   }
 }

@@ -25,7 +25,7 @@ service cloud.firestore {
     }
 
     match /votes/{voteId}/ballots/{playerId} {
-      allow read: if false;
+      allow read: if true;
       allow create, update: if isValidBallot(request.resource.data)
         && isPlayerInSession(voteId, playerId, database);
       allow delete: if false;

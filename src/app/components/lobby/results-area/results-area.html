@@ -1,8 +1,27 @@
-<nz-card nzTitle="Results">
+<ng-template #cardTitle>
+    <span>Results</span>
+    @if (sessionService.isSpeaker()) {
+        <button nz-button nzType="primary" nzSize="small" class="details-btn"
+                (click)="openResultDetails()" title="View player votes">
+            <nz-icon nzType="eye" nzTheme="outline" />
+        </button>
+    }
+</ng-template>
+
+<nz-card [nzTitle]="cardTitle">
     <app-results />
     <button nz-button nzType="primary" nzBlock (click)="startNewRound()" [disabled]="!sessionService.isSpeaker()">
         Start New Round
     </button>
 </nz-card>
 
+<nz-modal
+    [(nzVisible)]="detailsVisible"
+    nzTitle="Player Votes"
+    [nzFooter]="null"
+    (nzOnCancel)="detailsVisible = false">
+    <ng-container *nzModalContent>
+        <app-results-details />
+    </ng-container>
+</nz-modal>
 

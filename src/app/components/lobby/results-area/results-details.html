@@ -1,0 +1,17 @@
+<nz-list nzBordered>
+    @for (ballot of ballots(); track ballot.playerId) {
+        <nz-list-item>
+            <span class="player-name">
+                {{ ballot.playerId | playerName : sessionService.session()?.players }}
+            </span>
+            <span class="player-ballot">
+                @if (ballot.influence !== 0) {
+                    <nz-tag nzColor="blue">{{ ballot.choice }}</nz-tag>
+                    <nz-tag nzColor="geekblue">{{ ballot.influence }} influence</nz-tag>
+                } @else {
+                    <nz-tag>—</nz-tag>
+                }
+            </span>
+        </nz-list-item>
+    }
+</nz-list>

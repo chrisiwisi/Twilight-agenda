@@ -1,0 +1,30 @@
+.details-btn {
+  margin-left: 8px;
+  vertical-align: middle;
+  opacity: 0.75;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.player-name {
+  flex: 1;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.speaker-crown {
+  color: #faad14;
+  font-size: 14px;
+}
+
+.player-ballot {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
