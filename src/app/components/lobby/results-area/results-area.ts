@@ -6,7 +6,7 @@ import {NzButtonComponent} from "ng-zorro-antd/button";
 import {ResultsComponent} from "./app-results.component";
 import {NzIconDirective} from "ng-zorro-antd/icon";
 import {NzModalModule} from "ng-zorro-antd/modal";
-import {ResultsDetails} from "./results-details.component";
+import {ResultsDetails} from "./results-details/results-details.component";
 
 @Component({
   selector: 'app-results-area',
