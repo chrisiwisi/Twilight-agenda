@@ -39,7 +39,8 @@ service cloud.firestore {
       && data.status in ['lobby', 'voting', 'results']
       && data.players is map
       && data.players.size() <= 50
-      && (!('voteId' in data) || data.voteId is string);
+      && (!('voteId' in data) || data.voteId is string)
+      && (!('speakerId' in data) || data.speakerId is string);
   }
 
   function isValidVote(data) {

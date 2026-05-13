@@ -1,7 +1,7 @@
 <nz-list nzBordered class="player-list">
     @for (player of players(); track player.id) {
         <nz-list-item>
-            @if (player.info.speaker) {
+            @if (sessionService.session()?.speakerId === player.id) {
                 <img src="assets/AgendaBlack.png" alt="speaker" class="speaker-icon"/>
             } @else {
                 <nz-icon nzType="user" nzTheme="outline"/>

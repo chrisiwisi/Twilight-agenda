@@ -15,7 +15,6 @@ import {NameGenerationService} from './name-generation.service';
 
 export interface PlayerInfo {
     name: string;
-    speaker: boolean;
     voted: boolean;
 }
 
@@ -23,14 +22,12 @@ export interface Session {
     id: string;
     players: Record<string, PlayerInfo>;
     status: 'lobby' | 'voting' | 'results';
+    /** The player ID of whoever currently holds the speaker token. */
+    speakerId?: string;
     /** Set when the session transitions to 'voting'. Points to the active vote document. */
     voteId?: string;
 }
 
-/*
-* I can already see this class has too much responsibility and should be split. But for the sake of time, I'm going to let it be for now.
-* TODO clean this up
-*/
 @Injectable({providedIn: 'root'})
 export class SessionService {
     private firestore = inject(Firestore);
@@ -51,12 +48,10 @@ export class SessionService {
     );
 
 
-    /** Get or generate a persistent random username stored in localStorage. */
     getOrCreateUsername(): string {
         return this.nameGen.getOrCreateUsername();
     }
 
-    /** Generate and persist a brand-new random username, replacing any existing one. */
     rerollUsername(): string {
         return this.nameGen.rerollUsername();
     }
@@ -85,7 +80,7 @@ export class SessionService {
         await setDoc(sessionRef, {
             status: 'lobby',
             players: {
-                [playerId]: {name: playerName, speaker: false, voted: false},
+                [playerId]: {name: playerName, voted: false},
             },
         });
         this._activeSessionId.set(sessionId);
@@ -102,7 +97,7 @@ export class SessionService {
         const session = snap.data() as Session;
         if (!session.players?.[playerId]) {
             await updateDoc(sessionRef, {
-                [`players.${playerId}`]: {name: playerName, speaker: false, voted: false},
+                [`players.${playerId}`]: {name: playerName, voted: false},
             });
         }
         this._activeSessionId.set(sessionId);
@@ -141,12 +136,12 @@ export class SessionService {
             createdAt: serverTimestamp(),
         });
 
-        await this.updateSession({ status: 'voting', voteId });
+        await this.updateSession({ status: 'voting', voteId }); //add the type of vote here (player, binary, free)
     }
 
     isSpeaker(): boolean {
         const playerId = this.getOrCreatePlayerId();
-        return this.session()?.players?.[playerId]?.speaker ?? false;
+        return this.session()?.speakerId === playerId;
     }
 
     private async updateSession(data: {[p: string]: any}): Promise<void> {
@@ -161,13 +156,7 @@ export class SessionService {
 
     takeSpeaker() {
         const playerId = this.getOrCreatePlayerId();
-        const players = this.session()?.players ?? {};
-        const updates: Record<string, any> = {};
-        for (const id of Object.keys(players)) {
-            updates[`players.${id}.speaker`] = false;
-        }
-        updates[`players.${playerId}.speaker`] = true;
-        this.updateSession(updates).then();
+        this.updateSession({ speakerId: playerId }).then();
     }
 
 
