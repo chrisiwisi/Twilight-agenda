@@ -44,8 +44,9 @@ service cloud.firestore {
   }
 
   function isValidVote(data) {
-    return data.keys().hasAll(['sessionId', 'createdAt'])
-      && data.sessionId is string;
+    return data.keys().hasAll(['sessionId', 'createdAt', 'type'])
+      && data.sessionId is string
+      && data.type in ['binary', 'player', 'free'];
   }
 
   function isValidBallot(data) {

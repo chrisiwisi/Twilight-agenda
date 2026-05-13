@@ -10,6 +10,8 @@ import {Observable} from "rxjs";
 
 export const VOTE_ID = new InjectionToken<string>('VOTE_ID');
 
+export type VoteType = 'binary' | 'player' | 'free';
+
 export interface Ballot {
   playerId: string;
   choice: string;
@@ -19,6 +21,7 @@ export interface Ballot {
 export interface Vote {
   id: string;
   sessionId: string;
+  type: VoteType;
   createdAt: Timestamp;
   results?: Record<string, number>; // choice -> total influence
 }

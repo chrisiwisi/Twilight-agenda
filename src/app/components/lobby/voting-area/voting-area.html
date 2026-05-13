@@ -1,13 +1,32 @@
 @if (!hasVoted()) {
     <form nz-form [formGroup]="voteForm" (ngSubmit)="onSubmitVote()">
         <nz-form-item>
-            <nz-form-control [nzErrorTip]="'Please enter a choice'">
-                <input
-                        nz-input
-                        nzSize="large"
-                        placeholder="What are you voting for?"
-                        formControlName="choice"
-                />
+            <nz-form-control [nzErrorTip]="'Please select a choice'">
+
+                @switch (voteType()) {
+                    @case ('binary') {
+                        <nz-radio-group formControlName="choice" nzButtonStyle="solid" class="binary-group">
+                            <label nz-radio-button nzValue="for">For</label>
+                            <label nz-radio-button nzValue="against">Against</label>
+                        </nz-radio-group>
+                    }
+                    @case ('player') {
+                        <nz-radio-group formControlName="choice" class="player-group">
+                            @for (player of playerChoices(); track player.id) {
+                                <label nz-radio-button [nzValue]="player.name">{{ player.name }}</label>
+                            }
+                        </nz-radio-group>
+                    }
+                    @default {
+                        <input
+                            nz-input
+                            nzSize="large"
+                            placeholder="What are you voting for?"
+                            formControlName="choice"
+                        />
+                    }
+                }
+
             </nz-form-control>
         </nz-form-item>
 
@@ -42,3 +61,4 @@
 }
 
 <app-player-list [showVotingStatus]="true"/>
+

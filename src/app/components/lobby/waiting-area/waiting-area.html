@@ -13,6 +13,33 @@
     I am the speaker
 </button>
 
-<button nz-button nzType="primary" nzSize="large" nzBlock (click)="startVote()" [disabled]="!sessionService.isSpeaker()">
+<button nz-button nzType="primary" nzSize="large" nzBlock (click)="openVoteTypeModal()" [disabled]="!sessionService.isSpeaker()">
     Start Vote
 </button>
+
+<nz-modal
+    [(nzVisible)]="voteTypeModalVisible"
+    nzTitle="Choose Vote Type"
+    [nzFooter]="null"
+    (nzOnCancel)="voteTypeModalVisible = false">
+    <ng-container *nzModalContent>
+        <div class="vote-type-options">
+            <button nz-button nzBlock nzSize="large" (click)="startVote('binary')">
+                <nz-icon nzType="swap" nzTheme="outline" />
+                <span class="vote-type-label">Binary</span>
+                <span class="vote-type-desc">For or Against</span>
+            </button>
+            <button nz-button nzBlock nzSize="large" (click)="startVote('player')">
+                <nz-icon nzType="team" nzTheme="outline" />
+                <span class="vote-type-label">Player</span>
+                <span class="vote-type-desc">Vote for a player</span>
+            </button>
+            <button nz-button nzBlock nzSize="large" (click)="startVote('free')">
+                <nz-icon nzType="edit" nzTheme="outline" />
+                <span class="vote-type-label">Free</span>
+                <span class="vote-type-desc">Enter any choice</span>
+            </button>
+        </div>
+    </ng-container>
+</nz-modal>
+

@@ -8,6 +8,7 @@ import {FormBuilder, ReactiveFormsModule, Validators} from "@angular/forms";
 import {NzInputNumberComponent} from "ng-zorro-antd/input-number";
 import {NzIconDirective} from "ng-zorro-antd/icon";
 import {PlayerList} from "../../player-list/player-list";
+import {NzRadioComponent, NzRadioGroupComponent} from "ng-zorro-antd/radio";
 
 @Component({
   selector: 'app-voting-area',
@@ -20,7 +21,9 @@ import {PlayerList} from "../../player-list/player-list";
     NzFormItemComponent,
     NzFormControlComponent,
     NzIconDirective,
-    PlayerList
+    PlayerList,
+    NzRadioGroupComponent,
+    NzRadioComponent,
   ],
   templateUrl: './voting-area.html',
   styleUrl: './voting-area.scss',
@@ -39,6 +42,13 @@ export class VotingArea {
   voteForm = this.formBuilder.group({
     choice: ['', Validators.required],
     influence: [null, [Validators.required, Validators.min(0)]],
+  });
+
+  voteType = computed(() => this.votingService.vote()?.type);
+
+  playerChoices = computed(() => {
+    const players = this.sessionService.session()?.players ?? {};
+    return Object.entries(players).map(([id, info]) => ({ id, name: info.name }));
   });
 
   // green once session confirms player.voted === true

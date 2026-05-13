@@ -12,6 +12,7 @@ import {
 } from '@angular/fire/firestore';
 import {Observable, of, switchMap} from 'rxjs';
 import {NameGenerationService} from './name-generation.service';
+import {VoteType} from './vote.service';
 
 export interface PlayerInfo {
     name: string;
@@ -124,7 +125,7 @@ export class SessionService {
         });
     }
 
-    async startVote(): Promise<void> {
+    async startVote(type: VoteType): Promise<void> {
         if (!this.isSpeaker()) { return; }
         const sessionId = this._activeSessionId();
         if (!sessionId) { return; }
@@ -133,10 +134,11 @@ export class SessionService {
         const voteRef = doc(this.firestore, 'votes', voteId);
         await setDoc(voteRef, {
             sessionId,
+            type,
             createdAt: serverTimestamp(),
         });
 
-        await this.updateSession({ status: 'voting', voteId }); //add the type of vote here (player, binary, free)
+        await this.updateSession({ status: 'voting', voteId });
     }
 
     isSpeaker(): boolean {
