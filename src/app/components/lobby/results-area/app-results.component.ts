@@ -99,7 +99,7 @@ export class ResultsComponent {
               callbacks: {
                 label: ctx => {
                   const total = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0);
-                  return ` ${ctx.parsed.y} influence (${Math.round(ctx.parsed.y ?? 0 / total * 100)}%)`;
+                  return ` ${ctx.parsed.y} influence (${Math.round((ctx.parsed.y ?? 0) / total * 100)}%)`;
                 }
               }
             }
