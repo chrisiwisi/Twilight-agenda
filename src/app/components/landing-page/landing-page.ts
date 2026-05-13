@@ -59,4 +59,12 @@ export class LandingPage {
       this.loading.set(false);
     }
   }
+
+  protected editUsername() {
+    const newName = prompt('Enter a new username:', this.username());
+    if (newName && newName.trim()) {
+      this.username.set(newName.trim());
+      localStorage.setItem('twilight_username', this.username());
+    }
+  }
 }
